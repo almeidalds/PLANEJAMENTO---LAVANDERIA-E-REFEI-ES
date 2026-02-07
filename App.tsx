@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Users, Calendar, Settings, AlertTriangle, RefreshCw, Lock, Unlock, 
@@ -5,7 +6,7 @@ import {
   Clock, MapPin, Zap, Search, Bell, PieChart, TrendingUp, LogOut, Copy, Download,
   Activity, Grid, Printer, History, AlertCircle, Trash2, Info, Edit, MoreVertical,
   UploadCloud, FileSpreadsheet, AlertOctagon, ChevronDown, Folder, FolderOpen, ArrowRight,
-  Sliders, Layers, Timer, Repeat, Hash, Type, CheckSquare, Square
+  Sliders, Layers, Timer, Repeat, Hash, Type, CheckSquare, Square, Menu, Home
 } from 'lucide-react';
 import { 
   District, PlanTemplateModel, PlanTemplateWeek, PlanTemplateBlock, 
@@ -19,46 +20,34 @@ import { generateWeekSchedule, analyzeSchedule, addDays, generateId, formatTime,
 const Tooltip = ({ text, children }: { text: string, children?: React.ReactNode }) => (
     <div className="group relative inline-flex items-center justify-center">
         {children}
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-auto whitespace-nowrap bg-slate-800 text-white text-[10px] font-bold py-1 px-2 rounded shadow-lg z-50 pointer-events-none">
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-auto whitespace-nowrap bg-slate-700 text-white text-[10px] font-bold py-1.5 px-3 rounded-xl shadow-lg z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
             {text}
-            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-800"></div>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-700"></div>
         </div>
     </div>
 );
 
 const Badge = ({ children, color, className = "" }: { children?: React.ReactNode; color: 'red' | 'green' | 'yellow' | 'blue' | 'gray' | 'brand'; className?: string }) => {
   const colors = {
-    red: 'bg-red-50 text-red-600 border border-red-100',
-    green: 'bg-emerald-50 text-emerald-600 border border-emerald-100',
-    yellow: 'bg-amber-50 text-amber-600 border border-amber-100',
-    blue: 'bg-blue-50 text-blue-600 border border-blue-100',
-    gray: 'bg-slate-100 text-slate-500 border border-slate-200',
-    brand: 'bg-brand-50 text-brand-600 border border-brand-100',
+    red: 'text-red-500 shadow-soft-pressed bg-neu-base',
+    green: 'text-emerald-500 shadow-soft-pressed bg-neu-base',
+    yellow: 'text-amber-500 shadow-soft-pressed bg-neu-base',
+    blue: 'text-blue-500 shadow-soft-pressed bg-neu-base',
+    gray: 'text-slate-400 shadow-soft-pressed bg-neu-base',
+    brand: 'text-brand-600 shadow-soft-pressed bg-neu-base',
   };
-  return <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase ${colors[color]} ${className}`}>{children}</span>;
+  return <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wide uppercase ${colors[color]} ${className}`}>{children}</span>;
 };
 
-const Card = ({ title, children, action, className = "" }: { title?: string, children?: React.ReactNode, action?: React.ReactNode, className?: string }) => (
-  <div className={`bg-white rounded-3xl shadow-soft border border-white/50 p-6 ${className}`}>
-    {(title || action) && (
-      <div className="flex justify-between items-center mb-6">
-        {title && <h3 className="font-bold text-slate-800 text-lg">{title}</h3>}
-        {action}
-      </div>
-    )}
-    <div>{children}</div>
-  </div>
-);
-
 const StatCard = ({ label, value, icon: Icon, trend, color = "brand" }: any) => (
-  <div className="bg-white rounded-3xl p-6 shadow-soft flex items-start justify-between min-w-[200px]">
+  <div className="neu-card p-6 flex items-center justify-between min-w-[200px] hover:-translate-y-1 transition-transform duration-300">
     <div>
-      <div className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">{label}</div>
-      <div className="text-3xl font-extrabold text-slate-800 mb-1">{value}</div>
-      {trend && <div className="text-xs text-emerald-500 font-medium flex items-center gap-1"><TrendingUp size={12}/> {trend}</div>}
+      <div className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">{label}</div>
+      <div className="text-3xl font-black text-slate-700 mb-1">{value}</div>
+      {trend && <div className="text-xs text-emerald-500 font-bold flex items-center gap-1"><TrendingUp size={12}/> {trend}</div>}
     </div>
-    <div className={`p-3 rounded-2xl ${color === 'brand' ? 'bg-brand-50 text-brand-600' : (color === 'red' ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500')}`}>
-      <Icon size={24} strokeWidth={2.5} />
+    <div className={`p-4 rounded-full shadow-soft-pressed ${color === 'brand' ? 'text-brand-500' : (color === 'red' ? 'text-red-500' : 'text-emerald-500')}`}>
+      <Icon size={24} strokeWidth={3} />
     </div>
   </div>
 );
@@ -340,7 +329,6 @@ export default function App() {
       const inputTraining = formData.get('trainingBase') as string;
       const inputPlanNum = formData.get('planNum') as string; 
       
-      // Construir ou validar ID
       let finalDistrictId = districtId;
       let planCode = '';
 
@@ -364,7 +352,6 @@ export default function App() {
       const mtcStartDt = formData.get('mtcStartDt') as string;
 
       if (editingDistrict) {
-        // Validação de Conflito de ID
         if (finalDistrictId !== editingDistrict.districtId && districts.some(d => d.districtId === finalDistrictId)) {
             alert(`Erro: O ID de distrito "${finalDistrictId}" já existe. Escolha outro.`);
             return;
@@ -376,7 +363,6 @@ export default function App() {
         };
         setDistricts(prev => prev.map(d => d.districtId === editingDistrict.districtId ? updatedDistrict : d));
         
-        // Atualizar atribuições órfãs se o ID mudar
         if (finalDistrictId !== editingDistrict.districtId) {
             setAssignments(prev => prev.map(a => a.districtId === editingDistrict.districtId ? { ...a, districtId: finalDistrictId } : a));
         }
@@ -425,7 +411,6 @@ export default function App() {
       if(!confirm(`Tem certeza que deseja remover o distrito ${districtId}?`)) return;
       setDistricts(prev => prev.filter(d => d.districtId !== districtId));
       setSelectedDistricts(prev => { const next = new Set(prev); next.delete(districtId); return next; });
-      // Remover atribuições associadas para não deixar órfãos
       setAssignments(prev => prev.filter(a => a.districtId !== districtId));
       addLog('APAGAR_DISTRITO', `Distrito ${districtId} e seus agendamentos removidos.`);
   };
@@ -434,7 +419,6 @@ export default function App() {
       if (selectedDistricts.size === 0) return;
       if (!confirm(`Tem certeza que deseja excluir ${selectedDistricts.size} distritos?`)) return;
       setDistricts(prev => prev.filter(d => !selectedDistricts.has(d.districtId)));
-      // Remover atribuições em massa
       setAssignments(prev => prev.filter(a => !selectedDistricts.has(a.districtId)));
       addLog('APAGAR_LOTE', `Removidos ${selectedDistricts.size} distritos e seus agendamentos.`);
       setSelectedDistricts(new Set());
@@ -675,40 +659,39 @@ export default function App() {
             <StatCard label="Total Agendado" value={totalAssignments} icon={Users} trend="+12% vs sem. anterior" />
             <StatCard label="Horários Criados" value={visibleSlots.length} icon={Layout} color="green" />
         </div>
-        <div className="flex flex-col xl:flex-row justify-between items-center bg-white p-4 rounded-3xl border border-white shadow-soft gap-4 flex-shrink-0">
+        <div className="neu-card p-4 flex flex-col xl:flex-row justify-between items-center gap-4 flex-shrink-0">
              <div className="flex items-center gap-6 w-full xl:w-auto">
-                <div><h2 className="text-lg font-black text-slate-800">Agenda Semanal</h2><div className="text-xs text-slate-400 font-medium">Gestão de alocações</div></div>
-                <div className="h-8 w-px bg-slate-100"></div>
-                <div className="flex bg-slate-100 p-1 rounded-xl">
-                   <button onClick={() => setViewMode('GRID')} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'GRID' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}><Grid size={14} /> Grade</button>
-                   <button onClick={() => setViewMode('HEATMAP')} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'HEATMAP' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}><Activity size={14} /> Mapa</button>
+                <div className="px-2"><h2 className="text-xl font-black text-slate-700">Agenda</h2><div className="text-xs text-slate-400 font-bold uppercase tracking-wider">Gestão Semanal</div></div>
+                <div className="h-10 w-px bg-slate-300"></div>
+                <div className="flex bg-neu-base p-1.5 rounded-2xl shadow-soft-pressed-sm">
+                   <button onClick={() => setViewMode('GRID')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${viewMode === 'GRID' ? 'bg-white text-brand-600 shadow-soft-sm' : 'text-slate-400 hover:text-slate-600'}`}><Grid size={16} /> Grade</button>
+                   <button onClick={() => setViewMode('HEATMAP')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${viewMode === 'HEATMAP' ? 'bg-white text-brand-600 shadow-soft-sm' : 'text-slate-400 hover:text-slate-600'}`}><Activity size={16} /> Mapa</button>
                 </div>
-                <button onClick={() => setShowSettingsModal(true)} className="p-2 text-slate-400 hover:text-brand-600 hover:bg-slate-50 rounded-lg transition-all"><Sliders size={20} /></button>
-                <div className="hidden md:flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
-                    <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Filtro</span>
+                <button onClick={() => setShowSettingsModal(true)} className="neu-icon-btn h-10 w-10"><Sliders size={18} /></button>
+                <div className="hidden md:flex items-center gap-3 neu-input px-4 py-2">
+                    <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider">Filtro</span>
                     <select value={filterTraining} onChange={(e) => setFilterTraining(e.target.value)} className="bg-transparent font-bold text-brand-600 outline-none text-sm cursor-pointer"><option value="ALL">Todos</option>{templates.map(t => (<option key={t.planCode} value={t.planCode}>{t.planCode}</option>))}</select>
                 </div>
             </div>
-            <div className="flex items-center gap-3 w-full xl:w-auto justify-end">
-                 <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="bg-slate-50 border border-transparent hover:border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 font-bold outline-none focus:ring-2 focus:ring-brand-100 transition-all" />
-                 <div className="flex items-center bg-slate-50 rounded-xl p-1 border border-slate-100">
-                    <Tooltip text="Limpar"><button onClick={handleClearWeek} className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-white rounded-lg"><Trash2 size={18} /></button></Tooltip>
-                    <div className="w-px h-6 bg-slate-200 mx-1"></div>
-                    <Tooltip text="Duplicar"><button onClick={() => setShowDuplicateModal(true)} className="p-2.5 text-slate-400 hover:text-brand-600 hover:bg-white rounded-lg"><Copy size={18} /></button></Tooltip>
-                    <Tooltip text="Exportar"><button onClick={handleExportCSV} className="p-2.5 text-slate-400 hover:text-brand-600 hover:bg-white rounded-lg"><Download size={18} /></button></Tooltip>
+            <div className="flex items-center gap-4 w-full xl:w-auto justify-end">
+                 <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="neu-input px-6 py-3 text-sm text-slate-700 font-bold tracking-wide" />
+                 <div className="flex items-center gap-2">
+                    <Tooltip text="Limpar"><button onClick={handleClearWeek} className="neu-icon-btn h-10 w-10 text-red-400 hover:text-red-500"><Trash2 size={18} /></button></Tooltip>
+                    <Tooltip text="Duplicar"><button onClick={() => setShowDuplicateModal(true)} className="neu-icon-btn h-10 w-10"><Copy size={18} /></button></Tooltip>
+                    <Tooltip text="Exportar"><button onClick={handleExportCSV} className="neu-icon-btn h-10 w-10"><Download size={18} /></button></Tooltip>
                  </div>
-                 <button onClick={() => { setEditingSlot({ slotId: '', type: SlotType.MEAL, training: '', weekIndex: 0, date: selectedDate, startTime: '12:00', endTime: '13:00', capacityPeople: 155, source: SlotSource.MANUAL }); setIsCreatingSlot(true); }} className="bg-white text-brand-600 px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold shadow-soft border border-slate-100 hover:bg-brand-50 transition-all"><Plus size={18} /> Novo Horário</button>
-                 <button onClick={handleGenerateWeek} className="bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold shadow-lg shadow-brand-200 transition-all hover:-translate-y-0.5 active:scale-95 cursor-pointer"><RefreshCw size={18} className={slots.length === 0 ? "animate-spin-slow" : ""} /> Gerar</button>
+                 <button onClick={() => { setEditingSlot({ slotId: '', type: SlotType.MEAL, training: '', weekIndex: 0, date: selectedDate, startTime: '12:00', endTime: '13:00', capacityPeople: 155, source: SlotSource.MANUAL }); setIsCreatingSlot(true); }} className="neu-btn px-4 py-3 flex items-center gap-2 text-sm"><Plus size={18} /> Novo</button>
+                 <button onClick={handleGenerateWeek} className="neu-btn-primary px-6 py-3 flex items-center gap-2 text-sm"><RefreshCw size={18} className={slots.length === 0 ? "animate-spin-slow" : ""} /> Gerar</button>
             </div>
         </div>
-        <div className="flex-1 overflow-hidden rounded-3xl bg-white shadow-soft border border-white/50 p-6 flex flex-col min-h-0">
+        <div className="flex-1 overflow-hidden neu-card p-6 flex flex-col min-h-0 relative z-0">
              {conflicts.length > 0 && (
-                <div className="mb-6 bg-white rounded-3xl shadow-soft border border-red-100 overflow-hidden flex flex-col animate-slide-down flex-shrink-0">
-                    <div className="bg-red-50 p-4 border-b border-red-100 flex justify-between items-center"><div className="flex items-center gap-3"><div className="bg-red-100 text-red-600 p-2 rounded-xl"><AlertTriangle size={20}/></div><div><h3 className="font-bold text-red-900 text-sm">Alertas ({conflicts.length})</h3></div></div></div>
+                <div className="mb-6 neu-card border-none bg-red-50/50 overflow-hidden flex flex-col animate-slide-down flex-shrink-0 shadow-none ring-2 ring-red-100">
+                    <div className="p-4 border-b border-red-100 flex justify-between items-center"><div className="flex items-center gap-3"><div className="bg-red-100 text-red-500 p-2 rounded-xl shadow-soft-pressed-sm"><AlertTriangle size={20}/></div><div><h3 className="font-bold text-red-800 text-sm">Conflitos Detectados ({conflicts.length})</h3></div></div></div>
                     <div className="max-h-48 overflow-y-auto p-2">
                         {conflicts.map(c => (
-                            <button key={c.id} className="w-full text-left p-3 hover:bg-red-50 rounded-xl flex items-start gap-3 transition-colors group border border-transparent hover:border-red-100">
-                                <AlertTriangle size={16} className="text-red-500 mt-0.5 flex-shrink-0" /><div className="flex-1"><div className="text-sm font-bold text-slate-700">{c.type}</div><div className="text-xs text-slate-500">{c.description}</div></div>
+                            <button key={c.id} className="w-full text-left p-3 hover:bg-white/50 rounded-xl flex items-start gap-3 transition-all group">
+                                <AlertTriangle size={16} className="text-red-400 mt-0.5 flex-shrink-0" /><div className="flex-1"><div className="text-sm font-bold text-slate-600">{c.type}</div><div className="text-xs text-slate-400">{c.description}</div></div>
                             </button>
                         ))}
                     </div>
@@ -720,8 +703,8 @@ export default function App() {
                     const d = new Date(date);
                     return (
                     <div key={date} className="flex flex-col min-h-[300px]">
-                        <div className="text-center p-3 rounded-2xl mb-3 border bg-white text-slate-500 border-slate-100"><div className="text-[10px] font-bold uppercase tracking-widest opacity-80">{d.toLocaleDateString('pt-BR', {weekday: 'short'})}</div><div className="text-lg font-black">{d.getDate()}</div></div>
-                        <div className="space-y-3 flex-1">
+                        <div className="text-center p-4 rounded-2xl mb-4 neu-card border-none shadow-soft-sm bg-neu-base"><div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{d.toLocaleDateString('pt-BR', {weekday: 'short'})}</div><div className="text-2xl font-black text-slate-600">{d.getDate()}</div></div>
+                        <div className="space-y-4 flex-1">
                         {daySlots.map(slot => {
                             const slotAssignments = assignments.filter(a => a.slotId === slot.slotId);
                             const occupied = slotAssignments.reduce((acc, a) => acc + a.missionaryCountAtCalculation, 0);
@@ -730,14 +713,14 @@ export default function App() {
                             
                             if (viewMode === 'HEATMAP') {
                                 const utilization = slot.capacityPeople > 0 ? occupied/slot.capacityPeople : 0;
-                                let heatClass = occupied > slot.capacityPeople ? 'bg-red-500 text-white' : utilization > 0.8 ? 'bg-orange-500 text-white' : 'bg-slate-50 text-slate-400';
-                                return (<div key={slot.slotId} onClick={() => setEditingSlot(slot)} className={`p-3 rounded-xl cursor-pointer border ${heatClass} ${hasConflict ? 'ring-4 ring-red-300' : ''}`}><div className="text-xs font-bold flex justify-between"><span>{formatTime(slot.startTime)}</span><span>{Math.round(utilization*100)}%</span></div></div>);
+                                let heatClass = occupied > slot.capacityPeople ? 'bg-red-400 text-white shadow-lg shadow-red-200' : utilization > 0.8 ? 'bg-amber-400 text-white shadow-lg shadow-amber-200' : 'bg-neu-base text-slate-400 shadow-soft-pressed-sm';
+                                return (<div key={slot.slotId} onClick={() => setEditingSlot(slot)} className={`p-3 rounded-xl cursor-pointer transition-all ${heatClass} ${hasConflict ? 'ring-2 ring-red-400' : ''}`}><div className="text-xs font-bold flex justify-between"><span>{formatTime(slot.startTime)}</span><span>{Math.round(utilization*100)}%</span></div></div>);
                             }
                             return (
-                            <div key={slot.slotId} onClick={() => setEditingSlot(slot)} className={`group relative p-3.5 rounded-2xl transition-all cursor-pointer border-2 hover:-translate-y-1 ${hasConflict ? 'border-red-400 bg-red-50' : 'border-transparent bg-slate-50 hover:border-brand-200'}`}>
-                                <div className="flex justify-between items-start mb-2"><div className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${isMeal ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}`}>{formatTime(slot.startTime)}</div><div className="text-[9px] font-black bg-white/60 px-1.5 py-0.5 rounded text-slate-500 uppercase tracking-wider">{slot.training}</div></div>
-                                <div className="text-slate-700 font-bold text-xs mb-1.5 leading-tight">{slot.mealType || 'Lavanderia'}</div>
-                                <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold mb-3"><Users size={12}/><span>{occupied}/{slot.capacityPeople}</span></div>
+                            <div key={slot.slotId} onClick={() => setEditingSlot(slot)} className={`group relative p-4 rounded-2xl transition-all cursor-pointer border-2 hover:-translate-y-1 hover:shadow-soft-sm ${hasConflict ? 'border-red-300 bg-red-50' : 'border-transparent bg-neu-base shadow-soft'}`}>
+                                <div className="flex justify-between items-start mb-3"><div className={`text-[10px] font-bold px-2 py-1 rounded-lg shadow-soft-pressed-sm ${isMeal ? 'text-orange-500' : 'text-blue-500'}`}>{formatTime(slot.startTime)}</div><div className="text-[9px] font-black text-slate-400 uppercase tracking-wider">{slot.training}</div></div>
+                                <div className="text-slate-600 font-bold text-xs mb-2 leading-tight">{slot.mealType || 'Lavanderia'}</div>
+                                <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold"><Users size={12}/><span>{occupied}/{slot.capacityPeople}</span></div>
                             </div>
                             );
                         })}
@@ -755,9 +738,9 @@ export default function App() {
     const currentBlocks = templateBlocks.filter(b => b.templateWeekId === templateWeeks.find(tw => tw.templateModelId === selectedTemplateId && tw.weekIndex === editorWeekIndex)?.templateWeekId).sort((a,b) => a.startTime.localeCompare(b.startTime));
     return (
       <div className="h-full flex gap-6 animate-fade-in">
-        <div className="w-80 bg-white rounded-3xl shadow-soft border border-white/50 flex flex-col overflow-hidden flex-shrink-0">
-             <div className="p-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50"><h3 className="font-bold text-slate-700">Modelos</h3><button onClick={() => setShowCreateTemplateModal(true)} className="p-2 bg-white text-brand-600 rounded-xl shadow-sm hover:bg-brand-50" title="Novo Grupo"><Plus size={18}/></button></div>
-             <div className="overflow-y-auto flex-1 p-2 space-y-2">
+        <div className="w-80 neu-card flex flex-col overflow-hidden flex-shrink-0">
+             <div className="p-6 border-b border-slate-100 flex justify-between items-center"><h3 className="font-bold text-slate-600">Modelos</h3><button onClick={() => setShowCreateTemplateModal(true)} className="neu-icon-btn h-9 w-9 text-brand-500" title="Novo Grupo"><Plus size={18}/></button></div>
+             <div className="overflow-y-auto flex-1 p-4 space-y-4">
                  {sortedGroupKeys.map(groupName => {
                      const isExpanded = expandedTemplateGroups.has(groupName);
                      const items = groupedTemplates[groupName].sort((a, b) => {
@@ -767,31 +750,29 @@ export default function App() {
                      });
 
                      return (
-                         <div key={groupName} className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
-                             <div className="flex items-center justify-between p-3 hover:bg-slate-50 transition-colors">
-                                 <button onClick={() => toggleGroup(groupName)} className="flex items-center gap-2 flex-1 text-left">
-                                     {isExpanded ? <ChevronDown size={16} className="text-slate-400"/> : <ChevronRight size={16} className="text-slate-400"/>}
-                                     <span className="font-bold text-slate-700 text-sm uppercase tracking-wide">{groupName}</span>
-                                 </button>
-                                 <button onClick={() => handleAddVersionToGroup(groupName)} className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-white rounded-lg transition-colors" title={`Adicionar Versão a ${groupName}`}>
-                                     <Plus size={14}/>
-                                 </button>
+                         <div key={groupName} className="neu-card border-none shadow-soft-sm overflow-hidden bg-neu-base">
+                             <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/40 transition-colors" onClick={() => toggleGroup(groupName)}>
+                                 <div className="flex items-center gap-3">
+                                     <div className={`p-1 rounded-full ${isExpanded ? 'bg-brand-500 text-white shadow-lg' : 'text-slate-400'}`}>{isExpanded ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}</div>
+                                     <span className="font-bold text-slate-600 text-sm uppercase tracking-wide">{groupName}</span>
+                                 </div>
+                                 <button onClick={(e) => { e.stopPropagation(); handleAddVersionToGroup(groupName); }} className="p-1 text-slate-400 hover:text-brand-500 transition-colors" title={`Adicionar Versão a ${groupName}`}><Plus size={14}/></button>
                              </div>
                              
                              {isExpanded && (
-                                 <div className="px-2 pb-2 space-y-1">
+                                 <div className="px-3 pb-3 space-y-2 bg-white/30 pt-1">
                                      {items.map(t => (
                                          <div key={t.templateModelId} className="relative group">
-                                             <button onClick={() => setSelectedTemplateId(t.templateModelId)} className={`w-full text-left pl-3 pr-8 py-2 rounded-xl transition-all flex justify-between items-center ${selectedTemplateId === t.templateModelId ? 'bg-brand-50 text-brand-700 font-bold border border-brand-100' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 border border-transparent'}`}>
+                                             <button onClick={() => setSelectedTemplateId(t.templateModelId)} className={`w-full text-left pl-4 pr-8 py-3 rounded-xl transition-all flex justify-between items-center ${selectedTemplateId === t.templateModelId ? 'bg-white shadow-soft text-brand-600 font-bold' : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'}`}>
                                                  <span className="text-xs truncate">{t.name.replace(groupName, '').trim() || t.name}</span>
-                                                 {selectedTemplateId === t.templateModelId && <CheckCircle size={12} className="flex-shrink-0" />}
+                                                 {selectedTemplateId === t.templateModelId && <div className="h-2 w-2 rounded-full bg-brand-500 shadow-glow"></div>}
                                              </button>
                                              <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleDeleteTemplate(t.templateModelId);
                                                 }}
-                                                className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-10"
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-300 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-10"
                                                 title="Excluir versão"
                                              >
                                                 <Trash2 size={12}/>
@@ -805,17 +786,17 @@ export default function App() {
                  })}
              </div>
         </div>
-        <div className="flex-1 bg-white rounded-3xl shadow-soft border border-white/50 flex flex-col overflow-hidden">
+        <div className="flex-1 neu-card flex flex-col overflow-hidden relative z-0">
              {selectedTemplate ? (
                  <>
-                    <div className="p-6 border-b border-slate-50 flex justify-between items-center"><div><h2 className="text-xl font-black text-slate-800">{selectedTemplate.name}</h2><div className="flex gap-2 mt-1"><Badge color="brand">{selectedTemplate.category || 'Geral'}</Badge><span className="text-xs font-bold text-slate-400">{selectedTemplate.planCode}</span></div></div><div className="flex gap-2"><button onClick={() => handleDeleteTemplate(selectedTemplate.templateModelId)} className="p-2.5 text-slate-400 hover:text-red-500 rounded-xl"><Trash2 size={20}/></button></div></div>
-                    <div className="px-6 pt-4 flex items-center gap-2 overflow-x-auto no-scrollbar">{Array.from({ length: selectedTemplate.weeksCount }).map((_, i) => (<button key={i+1} onClick={() => setEditorWeekIndex(i+1)} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${editorWeekIndex === i+1 ? 'bg-slate-800 text-white' : 'bg-slate-50 text-slate-400'}`}>Semana {i+1}</button>))}<button onClick={handleAddWeekToTemplate} className="px-3 py-2 rounded-xl bg-brand-50 text-brand-600"><Plus size={16}/></button></div>
-                    <div className="flex-1 overflow-y-auto p-6">
-                        <div className="flex justify-between items-center mb-4"><h3 className="font-bold text-slate-700">Blocos</h3><button onClick={() => { setEditingBlock({ templateWeekId: templateWeeks.find(tw => tw.templateModelId === selectedTemplateId && tw.weekIndex === editorWeekIndex)?.templateWeekId, weekday: 1 }); setShowBlockModal(true); }} className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold"><Plus size={16}/> Bloco</button></div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">{currentBlocks.map(block => (<div key={block.templateBlockId} className="group bg-slate-50 border border-slate-100 p-4 rounded-2xl relative"><div className="text-[10px] font-bold uppercase text-slate-400">{weekDays[block.weekday - 1]}</div><div className="text-lg font-black text-slate-800 mb-1">{block.startTime} - {block.endTime}</div><div className="flex gap-2 mt-2"><button onClick={() => { setEditingBlock(block); setShowBlockModal(true); }} className="p-1.5 bg-white text-brand-600 rounded-lg shadow-sm"><Pencil size={12}/></button><button onClick={() => handleDeleteBlock(block.templateBlockId)} className="p-1.5 bg-white text-red-500 rounded-lg shadow-sm"><Trash2 size={12}/></button></div></div>))}</div>
+                    <div className="p-8 border-b border-slate-100 flex justify-between items-start"><div><h2 className="text-3xl font-black text-slate-700 tracking-tight">{selectedTemplate.name}</h2><div className="flex gap-3 mt-3"><Badge color="brand">{selectedTemplate.category || 'Geral'}</Badge><span className="neu-input px-3 py-1 text-xs font-bold text-slate-400">{selectedTemplate.planCode}</span></div></div><div className="flex gap-2"><button onClick={() => handleDeleteTemplate(selectedTemplate.templateModelId)} className="neu-icon-btn h-12 w-12 text-red-400 hover:text-red-500"><Trash2 size={20}/></button></div></div>
+                    <div className="px-8 pt-6 flex items-center gap-4 overflow-x-auto no-scrollbar pb-2">{Array.from({ length: selectedTemplate.weeksCount }).map((_, i) => (<button key={i+1} onClick={() => setEditorWeekIndex(i+1)} className={`px-5 py-3 rounded-2xl text-sm font-bold transition-all whitespace-nowrap ${editorWeekIndex === i+1 ? 'bg-brand-500 text-white shadow-lg shadow-brand-200 transform -translate-y-1' : 'bg-neu-base text-slate-500 shadow-soft hover:bg-white'}`}>Semana {i+1}</button>))}<button onClick={handleAddWeekToTemplate} className="neu-icon-btn h-11 w-11 flex-shrink-0 text-brand-500"><Plus size={18}/></button></div>
+                    <div className="flex-1 overflow-y-auto p-8 bg-gradient-to-b from-transparent to-slate-50/50">
+                        <div className="flex justify-between items-center mb-6"><h3 className="font-bold text-slate-600 text-lg">Blocos de Horário</h3><button onClick={() => { setEditingBlock({ templateWeekId: templateWeeks.find(tw => tw.templateModelId === selectedTemplateId && tw.weekIndex === editorWeekIndex)?.templateWeekId, weekday: 1 }); setShowBlockModal(true); }} className="neu-btn-primary px-5 py-2.5 flex items-center gap-2 text-sm"><Plus size={16}/> Adicionar Bloco</button></div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">{currentBlocks.map(block => (<div key={block.templateBlockId} className="group neu-card border-none shadow-soft-sm p-5 relative hover:-translate-y-1 transition-transform"><div className="text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest">{weekDays[block.weekday - 1]}</div><div className="text-2xl font-black text-slate-700 mb-2">{block.startTime} - {block.endTime}</div><div className="text-xs font-bold text-brand-500 bg-brand-50 inline-block px-2 py-1 rounded-lg mb-4">{block.type === SlotType.MEAL ? block.mealType : 'Lavanderia'}</div><div className="flex gap-3 mt-2 absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => { setEditingBlock(block); setShowBlockModal(true); }} className="neu-icon-btn h-8 w-8 text-brand-500"><Pencil size={12}/></button><button onClick={() => handleDeleteBlock(block.templateBlockId)} className="neu-icon-btn h-8 w-8 text-red-500"><Trash2 size={12}/></button></div><div className="flex items-center gap-2 text-xs font-bold text-slate-400"><Users size={14}/> {block.capacityPeople} pax</div></div>))}</div>
                     </div>
                  </>
-             ) : <div className="flex items-center justify-center h-full text-slate-300">Selecione um modelo</div>}
+             ) : <div className="flex flex-col items-center justify-center h-full text-slate-300 gap-4"><Layout size={64} className="text-slate-200"/><p className="font-bold text-lg">Selecione um modelo para começar</p></div>}
         </div>
       </div>
     );
@@ -832,86 +813,86 @@ export default function App() {
 
       return (
           <div className="space-y-6 animate-fade-in h-full flex flex-col">
-              <div className="bg-white p-4 rounded-3xl shadow-soft border border-white/50 flex justify-between items-center flex-shrink-0">
-                  <div className="flex items-center gap-4">
-                       <h2 className="text-lg font-black text-slate-800 ml-2">Distritos</h2>
-                       <div className="h-8 w-px bg-slate-100"></div>
-                       <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl w-64">
+              <div className="neu-card p-4 flex justify-between items-center flex-shrink-0">
+                  <div className="flex items-center gap-6">
+                       <h2 className="text-xl font-black text-slate-700 ml-4">Distritos</h2>
+                       <div className="h-10 w-px bg-slate-200"></div>
+                       <div className="flex items-center gap-3 neu-input px-4 py-2 w-72">
                            <Search size={18} className="text-slate-400"/>
                            <input type="text" placeholder="Buscar distrito..." value={districtSearch} onChange={(e) => setDistrictSearch(e.target.value)} className="bg-transparent text-sm font-bold text-slate-700 outline-none w-full placeholder:text-slate-300" />
                        </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                       {selectedDistricts.size > 0 && (
-                          <button onClick={handleBatchDeleteDistricts} className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-xl text-sm font-bold transition-colors animate-scale-in">
+                          <button onClick={handleBatchDeleteDistricts} className="neu-btn px-4 py-2 bg-red-50 text-red-500 flex items-center gap-2 animate-scale-in">
                               <Trash2 size={18}/> Excluir ({selectedDistricts.size})
                           </button>
                       )}
-                      <div className="w-px h-8 bg-slate-100 mx-2"></div>
-                      <button onClick={() => setShowImportModal(true)} className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-xl text-sm font-bold transition-colors"><UploadCloud size={18}/> Importar</button>
-                      <button onClick={() => setShowBatchDistrictModal(true)} className="flex items-center gap-2 px-4 py-2 bg-brand-100 text-brand-700 hover:bg-brand-200 rounded-xl text-sm font-bold transition-colors"><Layers size={18}/> Gerar Lote</button>
-                      <button onClick={() => { setEditingDistrict(null); setShowAddDistrictModal(true); }} className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white hover:bg-brand-700 rounded-xl text-sm font-bold transition-colors shadow-lg shadow-brand-200"><Plus size={18}/> Novo Distrito</button>
+                      <div className="w-px h-8 bg-slate-200 mx-2"></div>
+                      <button onClick={() => setShowImportModal(true)} className="neu-btn px-4 py-2 text-slate-500 flex items-center gap-2"><UploadCloud size={18}/> Importar</button>
+                      <button onClick={() => setShowBatchDistrictModal(true)} className="neu-btn px-4 py-2 text-brand-600 flex items-center gap-2"><Layers size={18}/> Gerar Lote</button>
+                      <button onClick={() => { setEditingDistrict(null); setShowAddDistrictModal(true); }} className="neu-btn-primary px-5 py-2 flex items-center gap-2"><Plus size={18}/> Novo Distrito</button>
                   </div>
               </div>
 
-              <div className="bg-white rounded-3xl shadow-soft border border-white/50 flex-1 overflow-hidden flex flex-col">
-                  <div className="overflow-x-auto overflow-y-auto flex-1 p-2">
+              <div className="neu-card flex-1 overflow-hidden flex flex-col relative z-0">
+                  <div className="overflow-x-auto overflow-y-auto flex-1 p-4">
                       <table className="w-full text-left border-collapse">
-                          <thead className="sticky top-0 bg-white z-10">
+                          <thead className="sticky top-0 bg-neu-base z-10 shadow-sm">
                               <tr>
-                                  <th className="p-4 w-12 border-b border-slate-100">
-                                      <button onClick={() => toggleAllDistricts(filteredDistricts)} className="text-slate-400 hover:text-brand-600 transition-colors">
-                                          {allSelected ? <CheckSquare size={20} className="text-brand-600"/> : <Square size={20}/>}
+                                  <th className="p-5 w-16">
+                                      <button onClick={() => toggleAllDistricts(filteredDistricts)} className="text-slate-400 hover:text-brand-500 transition-colors">
+                                          {allSelected ? <CheckSquare size={20} className="text-brand-500"/> : <Square size={20}/>}
                                       </button>
                                   </th>
-                                  <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">ID Distrito</th>
-                                  <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Plano</th>
-                                  <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Início</th>
-                                  <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Missionários</th>
-                                  <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">Status</th>
-                                  <th className="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 text-right">AÇÕES</th>
+                                  <th className="p-5 text-xs font-black text-slate-400 uppercase tracking-wider">ID Distrito</th>
+                                  <th className="p-5 text-xs font-black text-slate-400 uppercase tracking-wider">Plano</th>
+                                  <th className="p-5 text-xs font-black text-slate-400 uppercase tracking-wider">Início</th>
+                                  <th className="p-5 text-xs font-black text-slate-400 uppercase tracking-wider">Missionários</th>
+                                  <th className="p-5 text-xs font-black text-slate-400 uppercase tracking-wider">Status</th>
+                                  <th className="p-5 text-xs font-black text-slate-400 uppercase tracking-wider text-right">AÇÕES</th>
                               </tr>
                           </thead>
-                          <tbody>
+                          <tbody className="bg-transparent">
                               {filteredDistricts.map(d => (
-                                  <tr key={d.districtId} className={`group transition-colors ${selectedDistricts.has(d.districtId) ? 'bg-brand-50/50' : 'hover:bg-slate-50'}`}>
-                                      <td className="p-4 border-b border-slate-50">
-                                          <button onClick={() => toggleDistrictSelection(d.districtId)} className={`transition-colors ${selectedDistricts.has(d.districtId) ? 'text-brand-600' : 'text-slate-300 hover:text-slate-500'}`}>
+                                  <tr key={d.districtId} className={`group border-b border-slate-100 last:border-0 hover:bg-white/60 transition-colors ${selectedDistricts.has(d.districtId) ? 'bg-brand-50/50' : ''}`}>
+                                      <td className="p-5">
+                                          <button onClick={() => toggleDistrictSelection(d.districtId)} className={`transition-colors ${selectedDistricts.has(d.districtId) ? 'text-brand-500' : 'text-slate-300 hover:text-slate-500'}`}>
                                               {selectedDistricts.has(d.districtId) ? <CheckSquare size={20}/> : <Square size={20}/>}
                                           </button>
                                       </td>
-                                      <td className="p-4 border-b border-slate-50">
-                                          <div className="font-bold text-slate-700">{d.districtId}</div>
-                                          <div className="text-[10px] text-slate-400 font-medium">Num: {d.districtNumero}{d.districtLetra}</div>
+                                      <td className="p-5">
+                                          <div className="font-bold text-slate-700 text-lg">{d.districtId}</div>
+                                          <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Num: {d.districtNumero}{d.districtLetra}</div>
                                       </td>
-                                      <td className="p-4 border-b border-slate-50">
-                                          <span className="px-2 py-1 rounded bg-slate-100 text-slate-600 text-xs font-bold">{d.planCode}</span>
+                                      <td className="p-5">
+                                          <span className="neu-input px-3 py-1 text-slate-500 text-xs font-bold">{d.planCode}</span>
                                       </td>
-                                      <td className="p-4 border-b border-slate-50 text-sm font-medium text-slate-600">{new Date(d.mtcStartDt).toLocaleDateString('pt-BR')}</td>
-                                      <td className="p-4 border-b border-slate-50">
+                                      <td className="p-5 text-sm font-bold text-slate-500">{new Date(d.mtcStartDt).toLocaleDateString('pt-BR')}</td>
+                                      <td className="p-5">
                                           <div className="flex items-center gap-2">
-                                              <Users size={14} className="text-slate-400"/>
+                                              <div className="bg-neu-base p-2 rounded-full shadow-soft-pressed-sm text-slate-400"><Users size={14}/></div>
                                               <span className="font-bold text-slate-700">{d.missionaryCount}</span>
                                           </div>
                                       </td>
-                                      <td className="p-4 border-b border-slate-50">
+                                      <td className="p-5">
                                           {d.isManual ? (
-                                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded"><Edit size={10}/> Manual</span>
+                                              <Badge color="blue">Manual</Badge>
                                           ) : (
-                                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded"><CheckCircle size={10}/> Auto</span>
+                                              <Badge color="green">Auto</Badge>
                                           )}
                                       </td>
-                                      <td className="p-4 border-b border-slate-50 text-right">
-                                          <div className="flex justify-end gap-1">
-                                              <button onClick={() => { setEditingDistrict(d); setShowAddDistrictModal(true); }} className="p-2 text-brand-600 hover:bg-brand-50 rounded-lg transition-colors" title="Editar"><Pencil size={16}/></button>
-                                              <button onClick={() => handleDeleteDistrict(d.districtId)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Excluir"><Trash2 size={16}/></button>
+                                      <td className="p-5 text-right">
+                                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                              <button onClick={() => { setEditingDistrict(d); setShowAddDistrictModal(true); }} className="neu-icon-btn h-9 w-9 text-brand-500" title="Editar"><Pencil size={16}/></button>
+                                              <button onClick={() => handleDeleteDistrict(d.districtId)} className="neu-icon-btn h-9 w-9 text-red-500" title="Excluir"><Trash2 size={16}/></button>
                                           </div>
                                       </td>
                                   </tr>
                               ))}
                               {filteredDistricts.length === 0 && (
                                   <tr>
-                                      <td colSpan={7} className="p-8 text-center text-slate-400 font-medium">Nenhum distrito encontrado.</td>
+                                      <td colSpan={7} className="p-12 text-center text-slate-400 font-bold">Nenhum distrito encontrado.</td>
                                   </tr>
                               )}
                           </tbody>
@@ -923,37 +904,46 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen w-full bg-slate-100 p-4 md:p-6 flex gap-6 font-sans text-slate-900 overflow-hidden">
+    <div className="h-screen w-full p-6 flex gap-8 font-sans text-slate-600 overflow-hidden bg-neu-base">
         {/* Floating Sidebar */}
-        <aside className="hidden md:flex flex-col w-72 bg-white rounded-[2.5rem] shadow-soft py-8 px-6 justify-between flex-shrink-0 z-20">
-            <div>
-                <div className="flex items-center gap-3 mb-12 px-2">
-                    <div className="bg-brand-600 text-white p-2.5 rounded-2xl shadow-lg shadow-brand-300"><Layout size={24} strokeWidth={3} /></div>
-                    <div><h1 className="text-xl font-black text-slate-900 tracking-tight leading-none">CTM</h1><span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Agendamento</span></div>
+        <aside className="hidden md:flex flex-col w-24 hover:w-72 transition-all duration-300 ease-in-out bg-neu-base rounded-[3rem] shadow-soft py-10 px-4 justify-between flex-shrink-0 z-50 overflow-hidden group">
+            <div className="flex flex-col items-center group-hover:items-start w-full">
+                <div className="flex items-center gap-4 mb-16 pl-3">
+                    <div className="bg-brand-500 text-white p-3 rounded-2xl shadow-lg shadow-brand-300 flex-shrink-0"><Layout size={24} strokeWidth={3} /></div>
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap"><h1 className="text-xl font-black text-slate-700 tracking-tight leading-none">CTM</h1><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Planner Pro</span></div>
                 </div>
-                <nav className="space-y-2">
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest px-4 mb-4">Menu Principal</div>
-                    {[ { id: 'SCHEDULE', icon: Calendar, label: 'Agenda' }, { id: 'TEMPLATES', icon: Layout, label: 'Modelos' }, { id: 'DISTRICTS', icon: Users, label: 'Distritos' } ].map(item => (
-                        <button key={item.id} onClick={() => item.id !== 'SETTINGS' && setActiveTab(item.id as any)} className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-sm font-bold transition-all duration-300 ${activeTab === item.id ? 'bg-slate-900 text-white shadow-xl shadow-slate-200 scale-105' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}>
-                        <item.icon size={20} strokeWidth={activeTab === item.id ? 2.5 : 2} />{item.label}</button>
+                
+                <nav className="space-y-6 w-full">
+                    {[ { id: 'SCHEDULE', icon: Calendar, label: 'Agenda' }, { id: 'TEMPLATES', icon: Layers, label: 'Modelos' }, { id: 'DISTRICTS', icon: Users, label: 'Distritos' } ].map(item => (
+                        <button key={item.id} onClick={() => item.id !== 'SETTINGS' && setActiveTab(item.id as any)} className={`relative w-full flex items-center gap-5 p-3 rounded-2xl transition-all duration-300 group-hover:px-4 ${activeTab === item.id ? 'text-brand-600 shadow-soft-pressed' : 'text-slate-400 hover:text-slate-600 hover:shadow-soft'}`}>
+                          <item.icon size={24} strokeWidth={activeTab === item.id ? 3 : 2} className={`flex-shrink-0 transition-all ${activeTab === item.id ? 'scale-110' : ''}`} />
+                          <span className={`font-bold text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute left-16`}>{item.label}</span>
+                          {activeTab === item.id && <div className="absolute right-3 h-2 w-2 rounded-full bg-brand-500 shadow-glow opacity-0 group-hover:opacity-100 transition-opacity"></div>}
+                        </button>
                     ))}
                 </nav>
             </div>
-            <div className="bg-slate-50 p-4 rounded-3xl flex items-center gap-3 cursor-pointer hover:bg-slate-100 transition-colors">
-                <div className="w-10 h-10 rounded-full bg-brand-200 border-2 border-white shadow-sm flex items-center justify-center text-brand-700 font-bold">AD</div>
-                <div className="flex-1 min-w-0"><div className="text-sm font-bold text-slate-900 truncate">Admin</div><div className="text-xs text-slate-500 truncate">admin@ctm.org</div></div>
-                <LogOut size={16} className="text-slate-400"/>
+            
+            <div className="flex flex-col items-center w-full">
+               <button className="neu-icon-btn h-12 w-12 text-slate-400 hover:text-red-500 mb-2"><LogOut size={20}/></button>
             </div>
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 flex flex-col min-w-0 relative">
-            <header className="flex justify-between items-center mb-6 px-2">
-                <div><h1 className="text-3xl font-black text-slate-800 tracking-tight">{activeTab === 'SCHEDULE' ? 'Agenda' : activeTab === 'TEMPLATES' ? 'Modelos' : 'Distritos'}</h1><p className="text-slate-400 font-medium">Bem-vindo, aqui está o resumo de hoje.</p></div>
-                <div className="flex items-center gap-4"><button className="bg-white p-3 rounded-2xl shadow-soft text-slate-400 hover:text-brand-600 transition-colors relative"><Bell size={20} />{logs.length > 0 && <span className="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full border border-white"></span>}</button></div>
+        <main className="flex-1 flex flex-col min-w-0 relative h-full">
+            <header className="flex justify-between items-center mb-8 px-2">
+                <div><h1 className="text-4xl font-black text-slate-700 tracking-tight">{activeTab === 'SCHEDULE' ? 'Agenda' : activeTab === 'TEMPLATES' ? 'Modelos' : 'Distritos'}</h1></div>
+                <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2 neu-card px-4 py-2 rounded-full">
+                        <div className="h-2 w-2 rounded-full bg-green-500 shadow-glow"></div>
+                        <span className="text-xs font-bold text-slate-500">Sistema Online</span>
+                    </div>
+                    <button className="neu-icon-btn h-12 w-12 text-slate-400 relative hover:text-brand-500"><Bell size={22} />{logs.length > 0 && <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#ecf0f3]"></span>}</button>
+                    <div className="h-12 w-12 rounded-full bg-slate-200 shadow-soft border-2 border-white overflow-hidden"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" alt="Admin" /></div>
+                </div>
             </header>
 
-            <div className="flex-1 min-h-0 relative">
+            <div className="flex-1 min-h-0 relative pb-2">
                  {activeTab === 'SCHEDULE' && renderScheduleView()}
                  {activeTab === 'TEMPLATES' && renderTemplateView()}
                  {activeTab === 'DISTRICTS' && renderDistrictsView()}
@@ -962,181 +952,166 @@ export default function App() {
       
         {/* Toast Notification */}
         {logs.length > 0 && (
-            <div className="fixed bottom-6 right-6 bg-slate-900 text-white p-4 rounded-2xl shadow-2xl flex items-center gap-4 z-50 animate-slide-up max-w-sm cursor-pointer hover:bg-slate-800 transition-colors" onClick={() => setLogs(l => l.slice(1))}>
-                <div className="bg-slate-800 p-2 rounded-xl"><CheckCircle size={16} className="text-emerald-400"/></div><div><div className="text-xs font-bold uppercase tracking-wider text-slate-400">{logs[0].action}</div><div className="text-sm font-medium">{logs[0].summary}</div></div><button className="text-slate-500 hover:text-white"><X size={16}/></button>
+            <div className="fixed bottom-8 right-8 bg-slate-800 text-white p-5 rounded-3xl shadow-2xl flex items-center gap-5 z-50 animate-slide-up max-w-md cursor-pointer hover:scale-105 transition-transform" onClick={() => setLogs(l => l.slice(1))}>
+                <div className="bg-emerald-500/20 p-3 rounded-2xl"><CheckCircle size={20} className="text-emerald-400"/></div><div><div className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">{logs[0].action}</div><div className="text-sm font-bold">{logs[0].summary}</div></div>
             </div>
         )}
 
         {/* --- GLOBAL MODALS --- */}
-        {/* Global Settings Modal */}
-        {showSettingsModal && (
-             <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm animate-scale-in p-8 border border-white">
-                     <h3 className="font-black text-2xl text-slate-800 mb-2">Configurações Globais</h3>
-                     <p className="text-slate-500 text-sm mb-6">Defina os limites padrão de capacidade.</p>
-                     <form onSubmit={handleSaveSettings} className="space-y-4">
-                        <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Capacidade Refeitório (Geral)</label><input name="defaultMealCapacity" type="number" defaultValue={globalSettings.defaultMealCapacity} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" required min="1" /></div>
-                        <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Capacidade Lavanderia (Geral)</label><input name="defaultLaundryCapacity" type="number" defaultValue={globalSettings.defaultLaundryCapacity} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" required min="1" /></div>
-                        <div className="flex gap-3 pt-4"><button type="button" onClick={() => setShowSettingsModal(false)} className="flex-1 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-50 transition-colors">Cancelar</button><button type="submit" className="flex-[2] bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold shadow-lg shadow-brand-200 transition-all hover:-translate-y-1">Salvar</button></div>
-                     </form>
-                </div>
-             </div>
-        )}
+        {/* General Modal Backdrop & Container */}
+        {(showSettingsModal || showDuplicateModal || showCreateTemplateModal || showBatchDistrictModal || showAddDistrictModal || showImportModal || showBlockModal || editingSlot || isCreatingSlot) && (
+             <div className="fixed inset-0 bg-slate-900/10 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
+                
+                {/* Global Settings Modal */}
+                {showSettingsModal && (
+                    <div className="neu-card w-full max-w-sm p-8 animate-scale-in relative">
+                         <button onClick={() => setShowSettingsModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600"><X size={20}/></button>
+                         <h3 className="font-black text-2xl text-slate-700 mb-2">Configurações</h3>
+                         <p className="text-slate-400 text-xs font-bold uppercase tracking-wide mb-8">Limites Globais</p>
+                         <form onSubmit={handleSaveSettings} className="space-y-6">
+                            <div className="space-y-3"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide ml-2">Capacidade Refeitório</label><input name="defaultMealCapacity" type="number" defaultValue={globalSettings.defaultMealCapacity} className="neu-input w-full px-5 py-4 text-slate-700 font-bold text-lg" required min="1" /></div>
+                            <div className="space-y-3"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide ml-2">Capacidade Lavanderia</label><input name="defaultLaundryCapacity" type="number" defaultValue={globalSettings.defaultLaundryCapacity} className="neu-input w-full px-5 py-4 text-slate-700 font-bold text-lg" required min="1" /></div>
+                            <button type="submit" className="neu-btn-primary w-full py-4 text-lg mt-4">Salvar Alterações</button>
+                         </form>
+                    </div>
+                )}
 
-        {/* Duplicate Week Modal */}
-        {showDuplicateModal && (
-             <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm animate-scale-in p-8 border border-white">
-                     <h3 className="font-black text-2xl text-slate-800 mb-2">Duplicar Semana</h3>
-                     <p className="text-slate-500 text-sm mb-6">Copiar agenda de <span className="font-bold text-slate-800">{selectedDate}</span> para outra semana.</p>
-                     <div className="space-y-4">
-                        <div><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Início da Semana Alvo (Segunda)</label><input type="date" id="targetDateInput" className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none mt-1" /></div>
-                        <div className="bg-blue-50 p-3 rounded-xl text-xs text-blue-700 border border-blue-100"><strong>Nota:</strong> Isso criará cópias manuais de todos os horários. Recomendamos limpar a semana alvo antes.</div>
-                        <div className="flex gap-3 pt-2"><button onClick={() => setShowDuplicateModal(false)} className="flex-1 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-50 transition-colors">Cancelar</button><button onClick={() => { const input = document.getElementById('targetDateInput') as HTMLInputElement; if(input.value) handleDuplicateWeek(input.value); }} className="flex-[2] bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold shadow-lg shadow-brand-200 transition-all hover:-translate-y-1">Duplicar</button></div>
-                     </div>
-                </div>
-             </div>
-        )}
-        
-        {/* Create Template Modal */}
-        {showCreateTemplateModal && (
-             <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm animate-scale-in p-8 border border-white">
-                     <h3 className="font-black text-2xl text-slate-800 mb-2">Novo Grupo</h3>
-                     <p className="text-slate-500 text-sm mb-6">Crie uma nova família de planos (inicia na v1).</p>
-                     <form onSubmit={handleCreateNewGroup} className="space-y-4">
-                        <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Nome do Grupo (Ex: ALE5)</label><input name="groupName" type="text" placeholder="Ex: POR6, ALE3" className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none uppercase" required /></div>
-                        <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Duração Padrão (Semanas)</label><input name="weeksCount" type="number" min="1" max="50" defaultValue="6" className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" required /></div>
-                        <div className="flex gap-3 pt-2"><button type="button" onClick={() => setShowCreateTemplateModal(false)} className="flex-1 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-50 transition-colors">Cancelar</button><button type="submit" className="flex-[2] bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold shadow-lg shadow-brand-200 transition-all hover:-translate-y-1">Criar Grupo</button></div>
-                     </form>
-                </div>
-             </div>
-        )}
+                {/* Duplicate Week Modal */}
+                {showDuplicateModal && (
+                    <div className="neu-card w-full max-w-sm p-8 animate-scale-in relative">
+                         <button onClick={() => setShowDuplicateModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600"><X size={20}/></button>
+                         <h3 className="font-black text-2xl text-slate-700 mb-2">Duplicar</h3>
+                         <p className="text-slate-400 text-xs font-bold uppercase tracking-wide mb-8">Copiar semana de {selectedDate}</p>
+                         <div className="space-y-6">
+                            <div><label className="text-xs font-bold text-slate-400 uppercase tracking-wide ml-2">Semana Alvo (Segunda)</label><input type="date" id="targetDateInput" className="neu-input w-full px-5 py-4 text-slate-700 font-bold mt-2" /></div>
+                            <button onClick={() => { const input = document.getElementById('targetDateInput') as HTMLInputElement; if(input.value) handleDuplicateWeek(input.value); }} className="neu-btn-primary w-full py-4 text-lg">Confirmar Cópia</button>
+                         </div>
+                    </div>
+                )}
+                
+                {/* Create Template Modal */}
+                {showCreateTemplateModal && (
+                    <div className="neu-card w-full max-w-sm p-8 animate-scale-in relative">
+                         <button onClick={() => setShowCreateTemplateModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600"><X size={20}/></button>
+                         <h3 className="font-black text-2xl text-slate-700 mb-2">Novo Grupo</h3>
+                         <p className="text-slate-400 text-xs font-bold uppercase tracking-wide mb-8">Família de Planos</p>
+                         <form onSubmit={handleCreateNewGroup} className="space-y-6">
+                            <div className="space-y-3"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide ml-2">Nome (Ex: POR6)</label><input name="groupName" type="text" placeholder="POR6" className="neu-input w-full px-5 py-4 text-slate-700 font-bold text-lg uppercase" required /></div>
+                            <div className="space-y-3"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide ml-2">Duração (Semanas)</label><input name="weeksCount" type="number" min="1" max="50" defaultValue="6" className="neu-input w-full px-5 py-4 text-slate-700 font-bold text-lg" required /></div>
+                            <button type="submit" className="neu-btn-primary w-full py-4 text-lg mt-4">Criar Grupo</button>
+                         </form>
+                    </div>
+                )}
 
-        {/* Batch Create District Modal */}
-        {showBatchDistrictModal && (
-             <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl animate-scale-in p-8 border border-white flex flex-col md:flex-row gap-8">
-                     <div className="flex-1">
-                        <h3 className="font-black text-2xl text-slate-800 mb-2">Criar Distritos em Lote</h3>
-                        <p className="text-slate-500 text-sm mb-6">Gere múltiplos distritos automaticamente.</p>
-                        <form onSubmit={handleBatchCreateDistricts} className="space-y-4">
+                {/* Add/Edit District Modal */}
+                {showAddDistrictModal && (
+                    <div className="neu-card w-full max-w-md p-8 animate-scale-in relative">
+                         <button onClick={() => setShowAddDistrictModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600"><X size={20}/></button>
+                         <h3 className="font-black text-2xl text-slate-700 mb-2">{editingDistrict ? 'Editar' : 'Novo'} Distrito</h3>
+                         <p className="text-slate-400 text-xs font-bold uppercase tracking-wide mb-8">Dados do Distrito</p>
+                         <form onSubmit={handleSaveDistrict} className="space-y-5">
+                            {!editingDistrict && (
+                                <div className="grid grid-cols-2 gap-4 bg-slate-50/50 p-4 rounded-3xl mb-2">
+                                    <div className="space-y-2"><label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Treinamento</label><input name="trainingBase" type="text" placeholder="POR" className="neu-input w-full px-3 py-2 text-sm font-bold uppercase bg-white" required /></div>
+                                    <div className="space-y-2"><label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Plano</label><input name="planNum" type="text" placeholder="6" className="neu-input w-full px-3 py-2 text-sm font-bold bg-white" required /></div>
+                                </div>
+                            )}
+                            <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide ml-2">ID Completo</label><input name="districtId" type="text" placeholder="Opcional" defaultValue={editingDistrict?.districtId} className="neu-input w-full px-5 py-3 text-slate-700 font-bold" /></div>
+                            <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide ml-2">Data Início</label><input name="mtcStartDt" type="date" defaultValue={editingDistrict?.mtcStartDt} className="neu-input w-full px-5 py-3 text-slate-700 font-bold" required /></div>
+                            <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide ml-2">Missionários</label><input name="missionaryCount" type="number" min="1" defaultValue={editingDistrict?.missionaryCount || 1} className="neu-input w-full px-5 py-3 text-slate-700 font-bold" required /></div>
+                            <button type="submit" className="neu-btn-primary w-full py-4 text-lg mt-4">Salvar</button>
+                         </form>
+                    </div>
+                )}
+                
+                {/* Import Modal */}
+                {showImportModal && (
+                    <div className="neu-card w-full max-w-sm p-8 animate-scale-in relative">
+                         <button onClick={() => setShowImportModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600"><X size={20}/></button>
+                         <h3 className="font-black text-2xl text-slate-700 mb-2">Importar CSV</h3>
+                         <div className="space-y-6 mt-6">
+                            <div className="neu-input p-8 text-center relative hover:bg-white/50 transition-colors">
+                                <input type="file" accept=".csv" onChange={handleImportDistricts} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                <UploadCloud size={32} className="mx-auto text-brand-500 mb-2"/>
+                                <div className="text-sm font-bold text-slate-500">Arraste ou Clique</div>
+                            </div>
+                            <button onClick={handleDownloadTemplate} className="neu-btn w-full py-3 flex items-center justify-center gap-2 text-sm">Baixar Modelo</button>
+                         </div>
+                    </div>
+                )}
+
+                {/* Edit Slot/Block Modal (Combined Style) */}
+                {(showBlockModal || editingSlot || isCreatingSlot) && (
+                    <div className="neu-card w-full max-w-sm p-8 animate-scale-in relative">
+                         <button onClick={() => { setShowBlockModal(false); setEditingSlot(null); setIsCreatingSlot(false); }} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600"><X size={20}/></button>
+                         <h3 className="font-black text-2xl text-slate-700 mb-2">{(showBlockModal ? (editingBlock?.templateBlockId ? 'Editar Bloco' : 'Novo Bloco') : (isCreatingSlot ? 'Novo Agendamento' : 'Editar Horário'))}</h3>
+                         <form onSubmit={showBlockModal ? handleSaveBlock : handleSaveSlot} className="space-y-5 mt-6">
+                            {showBlockModal && <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide ml-2">Dia da Semana</label><select name="weekday" defaultValue={editingBlock?.weekday || 1} className="neu-input w-full px-5 py-3 text-slate-700 font-bold"><option value="1">Segunda</option><option value="2">Terça</option><option value="3">Quarta</option><option value="4">Quinta</option><option value="5">Sexta</option><option value="6">Sábado</option><option value="7">Domingo</option></select></div>}
+                            {(isCreatingSlot && !showBlockModal) && <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide ml-2">Data</label><input name="date" type="date" defaultValue={editingSlot?.date} className="neu-input w-full px-5 py-3 text-slate-700 font-bold" required /></div>}
+                            
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Treinamento</label>
-                                    <input type="text" placeholder="Ex: POR" className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none uppercase" value={batchConfig.trainingBase} onChange={(e) => setBatchConfig({...batchConfig, trainingBase: e.target.value.toUpperCase()})} required />
+                                <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide ml-2">Início</label><input name="startTime" type="time" defaultValue={showBlockModal ? editingBlock?.startTime : editingSlot?.startTime} className="neu-input w-full px-4 py-3 text-slate-700 font-bold text-center" required /></div>
+                                <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide ml-2">Fim</label><input name="endTime" type="time" defaultValue={showBlockModal ? editingBlock?.endTime : editingSlot?.endTime} className="neu-input w-full px-4 py-3 text-slate-700 font-bold text-center" required /></div>
+                            </div>
+
+                            {/* Type Toggle Neumorphic */}
+                            <div className="bg-neu-base shadow-soft-pressed rounded-xl p-1.5 flex gap-2">
+                                <label className="flex-1 cursor-pointer">
+                                    <input type="radio" name="type" value={SlotType.MEAL} defaultChecked={showBlockModal ? (!editingBlock?.type || editingBlock?.type === SlotType.MEAL) : (editingSlot?.type === SlotType.MEAL)} className="hidden peer" />
+                                    <span className="block text-center py-2.5 rounded-lg text-xs font-bold text-slate-400 peer-checked:bg-neu-base peer-checked:text-brand-600 peer-checked:shadow-soft transition-all">Refeição</span>
+                                </label>
+                                <label className="flex-1 cursor-pointer">
+                                    <input type="radio" name="type" value={SlotType.LAUN} defaultChecked={showBlockModal ? (editingBlock?.type === SlotType.LAUN) : (editingSlot?.type === SlotType.LAUN)} className="hidden peer" />
+                                    <span className="block text-center py-2.5 rounded-lg text-xs font-bold text-slate-400 peer-checked:bg-neu-base peer-checked:text-brand-600 peer-checked:shadow-soft transition-all">Lavanderia</span>
+                                </label>
+                            </div>
+
+                            {/* Conditional Meal Type */}
+                            <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide ml-2">Tipo de Refeição</label><select name="mealType" defaultValue={(showBlockModal ? editingBlock?.mealType : editingSlot?.mealType) || MealType.ALMOCO} className="neu-input w-full px-5 py-3 text-slate-700 font-bold"><option value={MealType.ALMOCO}>Almoço</option><option value={MealType.JANTAR}>Jantar</option><option value={MealType.DESJEJUM}>Desjejum</option></select></div>
+                            
+                            <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide ml-2">Capacidade</label><input name="capacityPeople" type="number" defaultValue={(showBlockModal ? editingBlock?.capacityPeople : editingSlot?.capacityPeople) || 50} className="neu-input w-full px-5 py-3 text-slate-700 font-bold" required /></div>
+                            
+                            <button type="submit" className="neu-btn-primary w-full py-4 text-lg mt-4">Salvar</button>
+                         </form>
+                    </div>
+                )}
+                
+                {/* Batch Create District Modal - Large */}
+                {showBatchDistrictModal && (
+                    <div className="neu-card w-full max-w-4xl p-8 animate-scale-in relative flex flex-col md:flex-row gap-8">
+                         <button onClick={() => setShowBatchDistrictModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600"><X size={20}/></button>
+                         <div className="flex-1">
+                            <h3 className="font-black text-2xl text-slate-700 mb-2">Gerar Lote</h3>
+                            <p className="text-slate-400 text-xs font-bold uppercase tracking-wide mb-8">Criação em Massa</p>
+                            <form onSubmit={handleBatchCreateDistricts} className="space-y-5">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase ml-2">Treinamento</label><input type="text" placeholder="POR" className="neu-input w-full px-5 py-3 font-bold uppercase" value={batchConfig.trainingBase} onChange={(e) => setBatchConfig({...batchConfig, trainingBase: e.target.value.toUpperCase()})} required /></div>
+                                    <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase ml-2">Plano</label><input type="text" placeholder="6" className="neu-input w-full px-5 py-3 font-bold" value={batchConfig.planNum} onChange={(e) => setBatchConfig({...batchConfig, planNum: e.target.value})} required /></div>
+                                </div>
+                                <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase ml-2">Início</label><input name="mtcStartDt" type="date" value={batchConfig.startDate} onChange={(e) => setBatchConfig({...batchConfig, startDate: e.target.value})} className="neu-input w-full px-5 py-3 font-bold" required /></div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase ml-2">Qtd.</label><input name="districtCount" type="number" min="1" max="20" value={batchConfig.count} onChange={(e) => setBatchConfig({...batchConfig, count: parseInt(e.target.value)})} className="neu-input w-full px-5 py-3 font-bold" required /></div>
+                                    <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase ml-2">Pax/Distrito</label><input name="peoplePerDistrict" type="number" min="1" value={batchConfig.people} onChange={(e) => setBatchConfig({...batchConfig, people: parseInt(e.target.value)})} className="neu-input w-full px-5 py-3 font-bold" required /></div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Num. Plano</label>
-                                    <input type="text" placeholder="Ex: 6" className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" value={batchConfig.planNum} onChange={(e) => setBatchConfig({...batchConfig, planNum: e.target.value})} required />
+                                    <label className="text-xs font-bold text-slate-400 uppercase ml-2">Sufixo</label>
+                                    <div className="neu-input p-2 flex gap-2">
+                                        <label className="flex-1 cursor-pointer"><input type="radio" name="namingMode" value="LETTERS" checked={batchConfig.namingMode === 'LETTERS'} onChange={() => setBatchConfig({...batchConfig, namingMode: 'LETTERS'})} className="hidden peer" /><div className="text-center py-2 rounded-lg text-xs font-bold text-slate-400 peer-checked:bg-white peer-checked:text-brand-600 peer-checked:shadow-soft transition-all">Letras (01A)</div></label>
+                                        <label className="flex-1 cursor-pointer"><input type="radio" name="namingMode" value="NUMBERS" checked={batchConfig.namingMode === 'NUMBERS'} onChange={() => setBatchConfig({...batchConfig, namingMode: 'NUMBERS'})} className="hidden peer" /><div className="text-center py-2 rounded-lg text-xs font-bold text-slate-400 peer-checked:bg-white peer-checked:text-brand-600 peer-checked:shadow-soft transition-all">Números (01)</div></label>
+                                    </div>
                                 </div>
+                                <button type="submit" className="neu-btn-primary w-full py-4 text-lg mt-2">Gerar Distritos</button>
+                            </form>
+                         </div>
+                         <div className="w-full md:w-72 bg-neu-base rounded-3xl p-6 shadow-soft-pressed">
+                            <div className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><Activity size={14}/> Preview</div>
+                            <div className="h-64 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                                {generatePreviewDistricts.map((item, idx) => (<div key={idx} className={`p-3 rounded-xl flex items-center justify-between text-xs font-bold border-l-4 ${item.exists ? 'border-red-400 bg-red-50 text-red-500' : 'border-brand-400 bg-white text-slate-600'}`}><span>{item.id}</span>{item.exists && <AlertCircle size={14} />}</div>))}
                             </div>
-                            <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Início</label><input name="mtcStartDt" type="date" value={batchConfig.startDate} onChange={(e) => setBatchConfig({...batchConfig, startDate: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" required /></div>
-                            <div className="grid grid-cols-2 gap-4"><div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Qtd. Distritos</label><input name="districtCount" type="number" min="1" max="20" value={batchConfig.count} onChange={(e) => setBatchConfig({...batchConfig, count: parseInt(e.target.value)})} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" required /></div><div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Pessoas/Distrito</label><input name="peoplePerDistrict" type="number" min="1" value={batchConfig.people} onChange={(e) => setBatchConfig({...batchConfig, people: parseInt(e.target.value)})} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" required /></div></div>
-                            <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Padrão de Nomenclatura</label><div className="grid grid-cols-2 gap-4 bg-slate-50 p-2 rounded-xl"><label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-white transition-colors"><input type="radio" name="namingMode" value="LETTERS" checked={batchConfig.namingMode === 'LETTERS'} onChange={() => setBatchConfig({...batchConfig, namingMode: 'LETTERS'})} className="accent-brand-600 w-4 h-4" /><div className="text-xs"><span className="block font-bold text-slate-700">Letras</span><span className="text-[10px] text-slate-400">01A, 01B...</span></div></label><label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-white transition-colors"><input type="radio" name="namingMode" value="NUMBERS" checked={batchConfig.namingMode === 'NUMBERS'} onChange={() => setBatchConfig({...batchConfig, namingMode: 'NUMBERS'})} className="accent-brand-600 w-4 h-4" /><div className="text-xs"><span className="block font-bold text-slate-700">Sequencial</span><span className="text-[10px] text-slate-400">01, 02...</span></div></label></div></div>
-                            <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Número Inicial</label><input name="startNumber" type="number" min="1" value={batchConfig.startNum} onChange={(e) => setBatchConfig({...batchConfig, startNum: parseInt(e.target.value)})} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" required /></div>
-                            <div className="flex gap-3 pt-2"><button type="button" onClick={() => setShowBatchDistrictModal(false)} className="flex-1 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-50 transition-colors">Cancelar</button><button type="submit" className="flex-[2] bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold shadow-lg shadow-brand-200 transition-all hover:-translate-y-1">Gerar Lote</button></div>
-                        </form>
-                     </div>
-                     <div className="w-full md:w-64 bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col">
-                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3 flex items-center gap-2"><Activity size={14}/> Pré-visualização</div>
-                        <div className="flex-1 overflow-y-auto space-y-2 pr-1">
-                            {generatePreviewDistricts.map((item, idx) => (<div key={idx} className={`p-2 rounded-lg flex items-center justify-between text-xs font-bold border ${item.exists ? 'bg-red-50 text-red-600 border-red-100' : 'bg-white text-slate-600 border-slate-200'}`}><span>{item.id}</span>{item.exists && <AlertCircle size={14} />}</div>))}
-                            {generatePreviewDistricts.length === 0 && <div className="text-center text-slate-400 text-xs italic py-4">Configure para visualizar</div>}
-                        </div>
-                        <div className="pt-3 border-t border-slate-200 mt-2 text-[10px] text-slate-400 font-medium text-center">Total: {batchConfig.count} distritos</div>
-                     </div>
-                </div>
-             </div>
-        )}
+                         </div>
+                    </div>
+                )}
 
-        {/* Add/Edit District Modal */}
-        {showAddDistrictModal && (
-             <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md animate-scale-in p-8 border border-white">
-                     <h3 className="font-black text-2xl text-slate-800 mb-2">{editingDistrict ? 'Editar Distrito' : 'Novo Distrito'}</h3>
-                     <p className="text-slate-500 text-sm mb-6">{editingDistrict ? 'Atualizar dados existentes.' : 'Cadastro manual de um distrito individual.'}</p>
-                     
-                     <form onSubmit={handleSaveDistrict} className="space-y-4">
-                        {!editingDistrict && (
-                            <div className="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-2xl border border-slate-100 mb-2">
-                                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Treinamento</label><input name="trainingBase" type="text" placeholder="POR" className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-bold uppercase" required /></div>
-                                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase">Plano</label><input name="planNum" type="text" placeholder="6" className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-bold" required /></div>
-                            </div>
-                        )}
-                        <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">ID Completo</label><input name="districtId" type="text" placeholder="Ex: POR6-01A (Opcional se preencher acima)" defaultValue={editingDistrict?.districtId} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" /></div>
-                        
-                        <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Data Início (CTM)</label><input name="mtcStartDt" type="date" defaultValue={editingDistrict?.mtcStartDt} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" required /></div>
-                        
-                        <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Qtd. Missionários</label><input name="missionaryCount" type="number" min="1" defaultValue={editingDistrict?.missionaryCount || 1} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" required /></div>
-
-                        <div className="flex gap-3 pt-2"><button type="button" onClick={() => setShowAddDistrictModal(false)} className="flex-1 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-50 transition-colors">Cancelar</button><button type="submit" className="flex-[2] bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold shadow-lg shadow-brand-200 transition-all hover:-translate-y-1">Salvar</button></div>
-                     </form>
-                </div>
-             </div>
-        )}
-        
-        {/* Import Modal */}
-        {showImportModal && (
-             <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm animate-scale-in p-8 border border-white">
-                     <h3 className="font-black text-2xl text-slate-800 mb-2">Importar CSV</h3>
-                     <p className="text-slate-500 text-sm mb-6">Carregue a Master List para criar distritos.</p>
-                     <div className="space-y-4">
-                        <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:bg-slate-50 transition-colors relative">
-                            <input type="file" accept=".csv" onChange={handleImportDistricts} className="absolute inset-0 opacity-0 cursor-pointer" />
-                            <UploadCloud size={32} className="mx-auto text-slate-300 mb-2"/>
-                            <div className="text-sm font-bold text-slate-500">Clique ou arraste o arquivo CSV</div>
-                        </div>
-                        <button onClick={handleDownloadTemplate} className="w-full py-3 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm hover:bg-slate-200 flex items-center justify-center gap-2"><FileSpreadsheet size={16}/> Baixar Modelo</button>
-                        <button onClick={() => setShowImportModal(false)} className="w-full py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-50 transition-colors">Cancelar</button>
-                     </div>
-                </div>
-             </div>
-        )}
-
-        {/* Edit Block Modal */}
-        {showBlockModal && (
-             <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm animate-scale-in p-8 border border-white">
-                     <h3 className="font-black text-2xl text-slate-800 mb-2">{editingBlock?.templateBlockId ? 'Editar Bloco' : 'Novo Bloco'}</h3>
-                     <form onSubmit={handleSaveBlock} className="space-y-4">
-                        <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Dia da Semana</label><select name="weekday" defaultValue={editingBlock?.weekday || 1} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none"><option value="1">Segunda</option><option value="2">Terça</option><option value="3">Quarta</option><option value="4">Quinta</option><option value="5">Sexta</option><option value="6">Sábado</option><option value="7">Domingo</option></select></div>
-                        <div className="grid grid-cols-2 gap-4"><div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Início</label><input name="startTime" type="time" defaultValue={editingBlock?.startTime || '12:00'} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" required /></div><div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Fim</label><input name="endTime" type="time" defaultValue={editingBlock?.endTime || '13:00'} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" required /></div></div>
-                        <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Tipo</label><div className="flex bg-slate-50 p-1 rounded-xl"><label className="flex-1 text-center cursor-pointer"><input type="radio" name="type" value={SlotType.MEAL} defaultChecked={!editingBlock?.type || editingBlock?.type === SlotType.MEAL} className="hidden peer" /><span className="block py-2 rounded-lg text-xs font-bold text-slate-400 peer-checked:bg-white peer-checked:text-brand-600 peer-checked:shadow-sm">Refeição</span></label><label className="flex-1 text-center cursor-pointer"><input type="radio" name="type" value={SlotType.LAUN} defaultChecked={editingBlock?.type === SlotType.LAUN} className="hidden peer" /><span className="block py-2 rounded-lg text-xs font-bold text-slate-400 peer-checked:bg-white peer-checked:text-brand-600 peer-checked:shadow-sm">Lavanderia</span></label></div></div>
-                        <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Tipo de Refeição</label><select name="mealType" defaultValue={editingBlock?.mealType || MealType.ALMOCO} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none"><option value={MealType.ALMOCO}>Almoço</option><option value={MealType.JANTAR}>Jantar</option><option value={MealType.DESJEJUM}>Desjejum</option></select></div>
-                        <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Capacidade</label><input name="capacityPeople" type="number" defaultValue={editingBlock?.capacityPeople || 50} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" required /></div>
-                        <div className="flex gap-3 pt-2"><button type="button" onClick={() => setShowBlockModal(false)} className="flex-1 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-50 transition-colors">Cancelar</button><button type="submit" className="flex-[2] bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold shadow-lg shadow-brand-200 transition-all hover:-translate-y-1">Salvar</button></div>
-                     </form>
-                </div>
-             </div>
-        )}
-
-        {/* Edit Slot Modal (Manual Override) */}
-        {(editingSlot || isCreatingSlot) && (
-             <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm animate-scale-in p-8 border border-white">
-                     <h3 className="font-black text-2xl text-slate-800 mb-2">{isCreatingSlot ? 'Novo Agendamento' : 'Editar Agendamento'}</h3>
-                     <p className="text-slate-500 text-sm mb-6">Ajuste manual de horário específico.</p>
-                     <form onSubmit={handleSaveSlot} className="space-y-4">
-                        {isCreatingSlot && (
-                            <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Data</label><input name="date" type="date" defaultValue={editingSlot?.date} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" required /></div>
-                        )}
-                        <div className="grid grid-cols-2 gap-4"><div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Início</label><input name="startTime" type="time" defaultValue={editingSlot?.startTime} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" required /></div><div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Fim</label><input name="endTime" type="time" defaultValue={editingSlot?.endTime} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" required /></div></div>
-                        {isCreatingSlot && (
-                            <>
-                                <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Tipo</label><div className="flex bg-slate-50 p-1 rounded-xl"><label className="flex-1 text-center cursor-pointer"><input type="radio" name="type" value={SlotType.MEAL} defaultChecked={editingSlot?.type === SlotType.MEAL} className="hidden peer" /><span className="block py-2 rounded-lg text-xs font-bold text-slate-400 peer-checked:bg-white peer-checked:text-brand-600 peer-checked:shadow-sm">Refeição</span></label><label className="flex-1 text-center cursor-pointer"><input type="radio" name="type" value={SlotType.LAUN} defaultChecked={editingSlot?.type === SlotType.LAUN} className="hidden peer" /><span className="block py-2 rounded-lg text-xs font-bold text-slate-400 peer-checked:bg-white peer-checked:text-brand-600 peer-checked:shadow-sm">Lavanderia</span></label></div></div>
-                                <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Treinamento (Opcional)</label><input name="training" type="text" defaultValue={editingSlot?.training || (filterTraining !== 'ALL' ? filterTraining : '')} placeholder="Ex: POR6.1" className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none uppercase" /></div>
-                            </>
-                        )}
-                        {(editingSlot?.type === SlotType.MEAL || isCreatingSlot) && (
-                            <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Refeição</label><select name="mealType" defaultValue={editingSlot?.mealType || MealType.ALMOCO} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none"><option value={MealType.ALMOCO}>Almoço</option><option value={MealType.JANTAR}>Jantar</option><option value={MealType.DESJEJUM}>Desjejum</option></select></div>
-                        )}
-                        <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Capacidade</label><input name="capacityPeople" type="number" defaultValue={editingSlot?.capacityPeople} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" required /></div>
-                        <div className="space-y-2"><label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Motivo da Alteração</label><input name="overrideReason" type="text" placeholder="Ex: Feriado, Manutenção..." defaultValue={editingSlot?.overrideReason} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-brand-500 outline-none" /></div>
-                        <div className="flex gap-3 pt-2"><button type="button" onClick={() => { setEditingSlot(null); setIsCreatingSlot(false); }} className="flex-1 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-50 transition-colors">Cancelar</button><button type="submit" className="flex-[2] bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold shadow-lg shadow-brand-200 transition-all hover:-translate-y-1">Salvar</button></div>
-                     </form>
-                </div>
              </div>
         )}
 

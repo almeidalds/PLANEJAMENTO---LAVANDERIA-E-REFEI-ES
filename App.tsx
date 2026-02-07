@@ -552,7 +552,7 @@ export default function App() {
   };
 
   const handleDeleteTemplate = (templateId: string) => {
-      if(!confirm('Tem certeza?')) return;
+      if(!confirm('Tem certeza que deseja excluir esta versão do planejamento? Essa ação não pode ser desfeita.')) return;
       setTemplates(prev => prev.filter(t => t.templateModelId !== templateId));
       if (selectedTemplateId === templateId) setSelectedTemplateId(null);
       addLog('APAGAR_TEMPLATE', `Modelo removido.`);
@@ -740,10 +740,22 @@ export default function App() {
                              {isExpanded && (
                                  <div className="px-2 pb-2 space-y-1">
                                      {items.map(t => (
-                                         <button key={t.templateModelId} onClick={() => setSelectedTemplateId(t.templateModelId)} className={`w-full text-left px-3 py-2 rounded-xl transition-all flex justify-between items-center ${selectedTemplateId === t.templateModelId ? 'bg-brand-50 text-brand-700 font-bold border border-brand-100' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 border border-transparent'}`}>
-                                             <span className="text-xs">{t.name.replace(groupName, '').trim() || t.name}</span>
-                                             {selectedTemplateId === t.templateModelId && <CheckCircle size={12} />}
-                                         </button>
+                                         <div key={t.templateModelId} className="relative group">
+                                             <button onClick={() => setSelectedTemplateId(t.templateModelId)} className={`w-full text-left pl-3 pr-8 py-2 rounded-xl transition-all flex justify-between items-center ${selectedTemplateId === t.templateModelId ? 'bg-brand-50 text-brand-700 font-bold border border-brand-100' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 border border-transparent'}`}>
+                                                 <span className="text-xs truncate">{t.name.replace(groupName, '').trim() || t.name}</span>
+                                                 {selectedTemplateId === t.templateModelId && <CheckCircle size={12} className="flex-shrink-0" />}
+                                             </button>
+                                             <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteTemplate(t.templateModelId);
+                                                }}
+                                                className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-10"
+                                                title="Excluir versão"
+                                             >
+                                                <Trash2 size={12}/>
+                                             </button>
+                                         </div>
                                      ))}
                                  </div>
                              )}
@@ -880,7 +892,7 @@ export default function App() {
                 </div>
                 <nav className="space-y-2">
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-widest px-4 mb-4">Menu Principal</div>
-                    {[ { id: 'SCHEDULE', icon: Calendar, label: 'Agenda' }, { id: 'TEMPLATES', icon: Layout, label: 'Modelos' }, { id: 'DISTRICTS', icon: Users, label: 'Distritos' }, { id: 'SETTINGS', icon: Settings, label: 'Configurações' } ].map(item => (
+                    {[ { id: 'SCHEDULE', icon: Calendar, label: 'Agenda' }, { id: 'TEMPLATES', icon: Layout, label: 'Modelos' }, { id: 'DISTRICTS', icon: Users, label: 'Distritos' } ].map(item => (
                         <button key={item.id} onClick={() => item.id !== 'SETTINGS' && setActiveTab(item.id as any)} className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-sm font-bold transition-all duration-300 ${activeTab === item.id ? 'bg-slate-900 text-white shadow-xl shadow-slate-200 scale-105' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}>
                         <item.icon size={20} strokeWidth={activeTab === item.id ? 2.5 : 2} />{item.label}</button>
                     ))}

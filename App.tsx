@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Users, Calendar, Settings, AlertTriangle, RefreshCw, Lock, Unlock, 
@@ -340,26 +339,53 @@ export default function App() {
       const districtId = formData.get('districtId') as string;
       const inputTraining = formData.get('trainingBase') as string;
       const inputPlanNum = formData.get('planNum') as string; 
-      const planCode = `${inputTraining}${inputPlanNum}`; 
-      const missionaryCount = parseInt(formData.get('missionaryCount') as string, 10);
-      const mtcStartDt = formData.get('mtcStartDt') as string;
       
-      const finalDistrictId = districtId || `${planCode}-01A`;
-      const suffix = finalDistrictId.split('-')[1] || '01A';
+      // Construir ou validar ID
+      let finalDistrictId = districtId;
+      let planCode = '';
+
+      if (!editingDistrict && inputTraining && inputPlanNum) {
+           planCode = `${inputTraining}${inputPlanNum}`;
+           if (!finalDistrictId) {
+                finalDistrictId = `${planCode}-01A`; 
+           }
+      } else if (editingDistrict) {
+           planCode = editingDistrict.planCode;
+           if (!finalDistrictId) finalDistrictId = editingDistrict.districtId;
+      }
+      
+      const parts = finalDistrictId.split('-');
+      const derivedPlanCode = parts[0];
+      const suffix = parts[1] || '01A';
       const districtNumero = suffix.replace(/\D/g, '');
       const districtLetra = suffix.replace(/\d/g, '');
+      
+      const missionaryCount = parseInt(formData.get('missionaryCount') as string, 10);
+      const mtcStartDt = formData.get('mtcStartDt') as string;
 
       if (editingDistrict) {
+        // Validação de Conflito de ID
+        if (finalDistrictId !== editingDistrict.districtId && districts.some(d => d.districtId === finalDistrictId)) {
+            alert(`Erro: O ID de distrito "${finalDistrictId}" já existe. Escolha outro.`);
+            return;
+        }
+
         const updatedDistrict: District = {
             ...editingDistrict,
-            districtId: finalDistrictId, training: planCode, planCode, mtcStartDt, missionaryCount, manualMissionaryCount: missionaryCount, countSource: CountSource.MANUAL, isManual: true, updatedAt: new Date().toISOString()
+            districtId: finalDistrictId, training: derivedPlanCode, planCode: derivedPlanCode, districtNumero, districtLetra, mtcStartDt, missionaryCount, manualMissionaryCount: missionaryCount, countSource: CountSource.MANUAL, isManual: true, updatedAt: new Date().toISOString()
         };
         setDistricts(prev => prev.map(d => d.districtId === editingDistrict.districtId ? updatedDistrict : d));
+        
+        // Atualizar atribuições órfãs se o ID mudar
+        if (finalDistrictId !== editingDistrict.districtId) {
+            setAssignments(prev => prev.map(a => a.districtId === editingDistrict.districtId ? { ...a, districtId: finalDistrictId } : a));
+        }
+        
         addLog('EDITAR_DISTRITO', `Distrito ${finalDistrictId} atualizado manualmente.`);
       } else {
         if (districts.some(d => d.districtId === finalDistrictId)) { alert('Já existe um distrito com este ID.'); return; }
         const newDistrict: District = {
-            districtId: finalDistrictId, training: planCode, districtNumero, districtLetra, planCode, mtcStartDt, missionaryCount, manualMissionaryCount: missionaryCount, countSource: CountSource.MANUAL, isManual: true, updatedAt: new Date().toISOString()
+            districtId: finalDistrictId, training: derivedPlanCode, districtNumero, districtLetra, planCode: derivedPlanCode, mtcStartDt, missionaryCount, manualMissionaryCount: missionaryCount, countSource: CountSource.MANUAL, isManual: true, updatedAt: new Date().toISOString()
         };
         setDistricts(prev => [...prev, newDistrict]);
         addLog('CRIAR_DISTRITO', `Distrito ${finalDistrictId} adicionado manualmente.`);
@@ -399,14 +425,18 @@ export default function App() {
       if(!confirm(`Tem certeza que deseja remover o distrito ${districtId}?`)) return;
       setDistricts(prev => prev.filter(d => d.districtId !== districtId));
       setSelectedDistricts(prev => { const next = new Set(prev); next.delete(districtId); return next; });
-      addLog('APAGAR_DISTRITO', `Distrito ${districtId} removido.`);
+      // Remover atribuições associadas para não deixar órfãos
+      setAssignments(prev => prev.filter(a => a.districtId !== districtId));
+      addLog('APAGAR_DISTRITO', `Distrito ${districtId} e seus agendamentos removidos.`);
   };
 
   const handleBatchDeleteDistricts = () => {
       if (selectedDistricts.size === 0) return;
       if (!confirm(`Tem certeza que deseja excluir ${selectedDistricts.size} distritos?`)) return;
       setDistricts(prev => prev.filter(d => !selectedDistricts.has(d.districtId)));
-      addLog('APAGAR_LOTE', `Removidos ${selectedDistricts.size} distritos.`);
+      // Remover atribuições em massa
+      setAssignments(prev => prev.filter(a => !selectedDistricts.has(a.districtId)));
+      addLog('APAGAR_LOTE', `Removidos ${selectedDistricts.size} distritos e seus agendamentos.`);
       setSelectedDistricts(new Set());
   };
 
@@ -553,9 +583,20 @@ export default function App() {
 
   const handleDeleteTemplate = (templateId: string) => {
       if(!confirm('Tem certeza que deseja excluir esta versão do planejamento? Essa ação não pode ser desfeita.')) return;
+      
+      // 1. Remove Template
       setTemplates(prev => prev.filter(t => t.templateModelId !== templateId));
+      
+      // 2. Remove Weeks associated
+      const weeksToDelete = templateWeeks.filter(tw => tw.templateModelId === templateId);
+      const weekIdsToDelete = weeksToDelete.map(tw => tw.templateWeekId);
+      setTemplateWeeks(prev => prev.filter(tw => tw.templateModelId !== templateId));
+      
+      // 3. Remove Blocks associated
+      setTemplateBlocks(prev => prev.filter(tb => !weekIdsToDelete.includes(tb.templateWeekId)));
+
       if (selectedTemplateId === templateId) setSelectedTemplateId(null);
-      addLog('APAGAR_TEMPLATE', `Modelo removido.`);
+      addLog('APAGAR_TEMPLATE', `Modelo e seus dados associados foram removidos.`);
   };
 
   const handleSaveBlock = (e: React.FormEvent) => {

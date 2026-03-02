@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Users, Calendar, Settings, AlertTriangle, RefreshCw, Lock, Unlock, 
@@ -907,16 +906,33 @@ export default function App() {
     <div className="h-screen w-full p-6 flex gap-8 font-sans text-slate-600 overflow-hidden bg-neu-base">
         {/* Floating Sidebar */}
         <aside className="hidden md:flex flex-col w-24 hover:w-72 transition-all duration-300 ease-in-out bg-neu-base rounded-[3rem] shadow-soft py-10 px-4 justify-between flex-shrink-0 z-50 overflow-hidden group">
+            
             <div className="flex flex-col items-center group-hover:items-start w-full">
-                <div className="flex items-center gap-4 mb-16 pl-3">
-                    <div className="bg-brand-500 text-white p-3 rounded-2xl shadow-lg shadow-brand-300 flex-shrink-0"><Layout size={24} strokeWidth={3} /></div>
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap"><h1 className="text-xl font-black text-slate-700 tracking-tight leading-none">CTM</h1><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Planner Pro</span></div>
+                
+                {/* LOGO */}
+                <div className="flex items-center justify-center group-hover:justify-start w-full mb-16">
+                    <div className="bg-brand-500 text-white p-3 rounded-2xl shadow-lg shadow-brand-300 flex-shrink-0">
+                        <Layout size={24} strokeWidth={3} />
+                    </div>
+                    <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[200px] group-hover:ml-4 group-hover:opacity-100 transition-all duration-300 ease-in-out whitespace-nowrap">
+                        <h1 className="text-xl font-black text-slate-700 tracking-tight leading-none">Organização</h1>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lavanderia e Refeições</span>
+                    </div>
                 </div>
                 
+                {/* NAVEGAÇÃO */}
                 <nav className="space-y-6 w-full">
-                    {[ { id: 'SCHEDULE', icon: Calendar, label: 'Agenda' }, { id: 'TEMPLATES', icon: Layers, label: 'Modelos' }, { id: 'DISTRICTS', icon: Users, label: 'Distritos' } ].map(item => (
-                        <button key={item.id} onClick={() => item.id !== 'SETTINGS' && setActiveTab(item.id as any)} className={`relative w-full flex items-center gap-5 p-3 rounded-2xl transition-all duration-300 group-hover:px-4 ${activeTab === item.id ? 'text-brand-600 shadow-soft-pressed' : 'text-slate-400 hover:text-slate-600 hover:shadow-soft'}`}>
-                          <item.icon size={24} strokeWidth={activeTab === item.id ? 3 : 2} className={`flex-shrink-0 transition-all ${activeTab === item.id ? 'scale-110' : ''}`} />
+                    {[ 
+                        { id: 'SCHEDULE', icon: Calendar, label: 'Agenda' }, 
+                        { id: 'TEMPLATES', icon: Layers, label: 'Modelos' }, 
+                        { id: 'DISTRICTS', icon: Users, label: 'Distritos' } 
+                    ].map(item => (
+                        <button 
+                            key={item.id} 
+                            onClick={() => item.id !== 'SETTINGS' && setActiveTab(item.id as any)} 
+                            className={`relative w-full flex items-center justify-center group-hover:justify-start p-3 rounded-2xl transition-all duration-300 group-hover:px-4 ${activeTab === item.id ? 'text-brand-600 shadow-soft-pressed' : 'text-slate-400 hover:text-slate-600 hover:shadow-soft'}`}
+                        >
+                          <item.icon size={24} strokeWidth={activeTab === item.id ? 3 : 2} className={`flex-shrink-0 transition-all z-10 ${activeTab === item.id ? 'scale-110' : ''}`} />
                           <span className={`font-bold text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute left-16`}>{item.label}</span>
                           {activeTab === item.id && <div className="absolute right-3 h-2 w-2 rounded-full bg-brand-500 shadow-glow opacity-0 group-hover:opacity-100 transition-opacity"></div>}
                         </button>
@@ -924,8 +940,11 @@ export default function App() {
                 </nav>
             </div>
             
+            {/* LOGOUT */}
             <div className="flex flex-col items-center w-full">
-               <button className="neu-icon-btn h-12 w-12 text-slate-400 hover:text-red-500 mb-2"><LogOut size={20}/></button>
+               <button className="neu-icon-btn h-12 w-12 flex items-center justify-center text-slate-400 hover:text-red-500 mb-2">
+                   <LogOut size={20}/>
+               </button>
             </div>
         </aside>
 
